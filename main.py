@@ -33,19 +33,9 @@ def create_completion(prompt_text):
     print(". ".join(completion.completion.split(". ")[:5]))  # Print the first 5 sentences of the completion
     return completion.completion
 
-# Function to split conversation
-def split_convo(raw_text):
-    prompt_text = f"{HUMAN_PROMPT} This is a conversation transcript between two people. Transcript: {raw_text}\n\nBreak it down by speaker, without modifying the content{AI_PROMPT}"
-    return create_completion(prompt_text)
-
 # Function to summarize conversation
 def summarize(split_text):
-    prompt_text = f"{HUMAN_PROMPT} This is a conversation transcript between two people. Transcript: {split_text}\n\nSummarize the conversation by speaker using bullet points{AI_PROMPT}"
-    return create_completion(prompt_text)
-
-# Function to create follow up message
-def follow_up(split_text):
-    prompt_text = f"{HUMAN_PROMPT} This is a conversation transcript between two people. Transcript: {split_text}\n\nBased on the conversation, write a follow up thank you email to the interviewert{AI_PROMPT}"
+    prompt_text = f"{HUMAN_PROMPT} This is a conversation transcript between two people. Transcript: {split_text}\n\n First, Split the conversation by spearker, then summarize the conversation by speaker using bullet points. Finally, based on the conversation, write a follow up thank you email to the interviewert{AI_PROMPT}"
     return create_completion(prompt_text)
 
 def read_or_create_file(file_path, creation_func, *args):
@@ -62,22 +52,15 @@ def write_results(audio_file):
     raw_file = os.path.splitext(audio_file)[0] + "_raw.txt"
     result = read_or_create_file(raw_file, transcribe_audio, audio_file)
 
-    split_file = os.path.splitext(audio_file)[0] + "_split.txt"
-    split = read_or_create_file(split_file, split_convo, result)
-
     # Generate Summary based on split
     summary_file = os.path.splitext(audio_file)[0] + "_summary.txt"
-    summary = summarize(split)
-    follow_up_message = follow_up(split)
+    summary = summarize(result)
 
     with open(summary_file, "a") as f:
         f.write("\nSummary:\n")
         f.write(summary)
-        f.write("\nFollow Up:\n")
-        f.write(follow_up_message)
 
 # Main function
 if __name__ == "__main__":
     audio_file = sys.argv[1]
-    print("Transcribing and summarizing: " + audio_file)
     write_results(audio_file)
